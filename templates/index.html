@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}NBA Data Visualizer - Home{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-basketball-ball"></i> NBA Data Visualizer
+        </h1>
+        <p class="page-subtitle">Explore NBA data like never before with interactive visualizations and player comparisons</p>
+    </div>
+    
+    <div class="hero-section">
+        <div class="card" style="text-align: center; background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(247, 147, 30, 0.2));">
+            <h2 style="font-size: 2.5rem; margin-bottom: 1rem;">
+                Discover Basketball Analytics
+            </h2>
+            <p style="font-size: 1.3rem; margin-bottom: 2rem; color: #e0e0e0;">
+                Compare players, analyze team performance, and explore historical data with cutting-edge visualizations
+            </p>
+            <a href="/compare" class="btn" style="margin-right: 1rem;">
+                <i class="fas fa-users"></i> Start Comparing Players
+            </a>
+            <a href="/charts" class="btn btn-secondary">
+                <i class="fas fa-chart-line"></i> View Charts
+            </a>
+        </div>
+    </div>
+    
+    <div class="features-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 3rem;">
+        <div class="card feature-card">
+            <div class="feature-icon" style="font-size: 3rem; text-align: center; margin-bottom: 1rem; color: #ff6b35;">
+                <i class="fas fa-user-friends"></i>
+            </div>
+            <h3 style="font-size: 1.5rem; margin-bottom: 1rem; text-align: center;">Player Comparison</h3>
+            <p style="color: #b8b8b8; margin-bottom: 1.5rem; text-align: center;">
+                Compare any two NBA players side-by-side with detailed statistics, career progression, and advanced metrics.
+            </p>
+            <div style="text-align: center;">
+                <a href="/compare" class="btn">Try Comparison Tool</a>
+            </div>
+        </div>
+        
+        <div class="card feature-card">
+            <div class="feature-icon" style="font-size: 3rem; text-align: center; margin-bottom: 1rem; color: #667eea;">
+                <i class="fas fa-chart-area"></i>
+            </div>
+            <h3 style="font-size: 1.5rem; margin-bottom: 1rem; text-align: center;">Interactive Charts</h3>
+            <p style="color: #b8b8b8; margin-bottom: 1.5rem; text-align: center;">
+                Explore shot charts, radar plots, performance trends, and heat maps with dynamic, interactive visualizations.
+            </p>
+            <div style="text-align: center;">
+                <a href="/charts" class="btn btn-secondary">Explore Charts</a>
+            </div>
+        </div>
+        
+        <div class="card feature-card">
+            <div class="feature-icon" style="font-size: 3rem; text-align: center; margin-bottom: 1rem; color: #84fab0;">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <h3 style="font-size: 1.5rem; margin-bottom: 1rem; text-align: center;">Team Analytics</h3>
+            <p style="color: #b8b8b8; margin-bottom: 1.5rem; text-align: center;">
+                Analyze team performance with regular season vs playoffs comparisons and advanced team metrics.
+            </p>
+            <div style="text-align: center;">
+                <a href="/teams" class="btn" style="background: linear-gradient(45deg, #84fab0, #8fd3f4);">View Team Stats</a>
+            </div>
+        </div>
+        
+        <div class="card feature-card">
+            <div class="feature-icon" style="font-size: 3rem; text-align: center; margin-bottom: 1rem; color: #ffd700;">
+                <i class="fas fa-clock"></i>
+            </div>
+            <h3 style="font-size: 1.5rem; margin-bottom: 1rem; text-align: center;">Historical Data</h3>
+            <p style="color: #b8b8b8; margin-bottom: 1.5rem; text-align: center;">
+                Access years of NBA statistics and discover trends across different eras of basketball history.
+            </p>
+            <div style="text-align: center;">
+                <a href="/charts" class="btn" style="background: linear-gradient(45deg, #ffd700, #ffed4e);">Explore History</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="stats-showcase" style="margin-top: 4rem;">
+        <div class="card">
+            <h2 style="text-align: center; margin-bottom: 2rem; color: #ff6b35;">
+                <i class="fas fa-fire"></i> Quick Stats Preview
+            </h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; text-align: center;">
+                <div class="stat-item">
+                    <div style="font-size: 2.5rem; font-weight: bold; color: #ff6b35; margin-bottom: 0.5rem;">500+</div>
+                    <div style="color: #b8b8b8;">Active Players</div>
+                </div>
+                <div class="stat-item">
+                    <div style="font-size: 2.5rem; font-weight: bold; color: #667eea; margin-bottom: 0.5rem;">30</div>
+                    <div style="color: #b8b8b8;">NBA Teams</div>
+                </div>
+                <div class="stat-item">
+                    <div style="font-size: 2.5rem; font-weight: bold; color: #84fab0; margin-bottom: 0.5rem;">70+</div>
+                    <div style="color: #b8b8b8;">Years of History</div>
+                </div>
+                <div class="stat-item">
+                    <div style="font-size: 2.5rem; font-weight: bold; color: #ffd700; margin-bottom: 0.5rem;">∞</div>
+                    <div style="color: #b8b8b8;">Possible Comparisons</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="getting-started" style="margin-top: 3rem;">
+        <div class="card" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));">
+            <h2 style="text-align: center; margin-bottom: 2rem;">
+                <i class="fas fa-rocket"></i> Getting Started
+            </h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+                <div class="step">
+                    <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                        <div style="background: #ff6b35; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 1rem; font-weight: bold;">1</div>
+                        <h4>Choose Your Analysis</h4>
+                    </div>
+                    <p style="color: #b8b8b8;">Select from player comparison, team analytics, or interactive charts based on what you want to explore.</p>
+                </div>
+                <div class="step">
+                    <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                        <div style="background: #667eea; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 1rem; font-weight: bold;">2</div>
+                        <h4>Select Players/Teams</h4>
+                    </div>
+                    <p style="color: #b8b8b8;">Use our search functionality to find and select the players or teams you want to analyze.</p>
+                </div>
+                <div class="step">
+                    <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                        <div style="background: #84fab0; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 1rem; font-weight: bold;">3</div>
+                        <h4>Explore & Discover</h4>
+                    </div>
+                    <p style="color: #b8b8b8;">Interact with charts, compare statistics, and uncover insights from the data visualizations.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        margin-bottom: 3rem;
+    }
+    
+    .feature-card {
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-10px);
+    }
+    
+    .stat-item {
+        transition: transform 0.3s ease;
+    }
+    
+    .stat-item:hover {
+        transform: scale(1.1);
+    }
+    
+    .step {
+        padding: 1rem;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        transition: transform 0.3s ease;
+    }
+    
+    .step:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    @media (max-width: 768px) {
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .hero-section .btn {
+            display: block;
+            margin: 0.5rem 0;
+        }
+    }
+</style>
+{% endblock %}

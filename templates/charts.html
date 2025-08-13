@@ -1,0 +1,578 @@
+{% extends "base.html" %}
+
+{% block title %}Player Comparison - NBA Data Visualizer{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-user-friends"></i> Player Comparison
+        </h1>
+        <p class="page-subtitle">Compare any two NBA players side-by-side</p>
+    </div>
+    
+    <div class="comparison-container">
+        <div class="player-selection" style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 2rem; align-items: start; margin-bottom: 3rem;">
+            <!-- Player 1 Selection -->
+            <div class="card player-search-card">
+                <h3 style="text-align: center; margin-bottom: 1.5rem; color: #ff6b35;">
+                    <i class="fas fa-user"></i> Player 1
+                </h3>
+                <div class="search-container" style="position: relative;">
+                    <input type="text" 
+                           id="player1Search" 
+                           class="search-input"
+                           placeholder="Search for a player..."
+                           style="width: 100%; padding: 1rem; border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 25px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 1rem;">
+                    <div id="player1Suggestions" class="suggestions-dropdown"></div>
+                </div>
+                <div id="player1Card" class="player-card" style="display: none; margin-top: 1.5rem; padding: 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; text-align: center; color: white;">
+                    <div class="player-info">
+                        <h4 class="player-name" style="font-size: 1.3rem; margin-bottom: 0.5rem;"></h4>
+                        <p class="player-team" style="opacity: 0.9; margin-bottom: 0.5rem;"></p>
+                        <p class="player-position" style="opacity: 0.8;"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- VS Divider -->
+            <div class="vs-divider" style="display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: bold; color: #ff6b35; margin-top: 4rem;">
+                VS
+            </div>
+            
+            <!-- Player 2 Selection -->
+            <div class="card player-search-card">
+                <h3 style="text-align: center; margin-bottom: 1.5rem; color: #ff6b35;">
+                    <i class="fas fa-user"></i> Player 2
+                </h3>
+                <div class="search-container" style="position: relative;">
+                    <input type="text" 
+                           id="player2Search" 
+                           class="search-input"
+                           placeholder="Search for a player..."
+                           style="width: 100%; padding: 1rem; border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 25px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 1rem;">
+                    <div id="player2Suggestions" class="suggestions-dropdown"></div>
+                </div>
+                <div id="player2Card" class="player-card" style="display: none; margin-top: 1.5rem; padding: 1.5rem; background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); border-radius: 15px; text-align: center; color: white;">
+                    <div class="player-info">
+                        <h4 class="player-name" style="font-size: 1.3rem; margin-bottom: 0.5rem;"></h4>
+                        <p class="player-team" style="opacity: 0.9; margin-bottom: 0.5rem;"></p>
+                        <p class="player-position" style="opacity: 0.8;"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Compare Button -->
+        <div style="text-align: center; margin-bottom: 3rem;">
+            <button id="compareBtn" class="btn" style="font-size: 1.2rem; padding: 1rem 3rem;" disabled>
+                <i class="fas fa-chart-bar"></i> Compare Players
+            </button>
+            <button id="demoBtn" class="btn btn-secondary" style="font-size: 1.2rem; padding: 1rem 3rem; margin-left: 1rem;">
+                <i class="fas fa-play"></i> Try Demo
+            </button>
+        </div>
+        
+        <!-- Loading State -->
+        <div id="loadingState" class="loading">
+            <div class="spinner"></div>
+            <p>Fetching player data...</p>
+        </div>
+        
+        <!-- Comparison Results -->
+        <div id="comparisonResults" style="display: none;">
+            <!-- Player Info Comparison -->
+            <div class="card">
+                <h2 style="text-align: center; margin-bottom: 2rem; color: #ff6b35;">
+                    <i class="fas fa-info-circle"></i> Player Information
+                </h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div id="player1Info" class="player-info-detailed" style="text-align: center; padding: 1.5rem; background: rgba(102, 126, 234, 0.2); border-radius: 15px;">
+                        <!-- Player 1 detailed info will be populated here -->
+                    </div>
+                    <div id="player2Info" class="player-info-detailed" style="text-align: center; padding: 1.5rem; background: rgba(255, 107, 53, 0.2); border-radius: 15px;">
+                        <!-- Player 2 detailed info will be populated here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Statistical Comparison -->
+            <div class="card">
+                <h2 style="text-align: center; margin-bottom: 2rem; color: #ff6b35;">
+                    <i class="fas fa-chart-bar"></i> Statistical Comparison
+                </h2>
+                <div id="statsComparison">
+                    <!-- Stats comparison will be populated here -->
+                </div>
+            </div>
+            
+            <!-- Radar Chart Comparison -->
+            <div class="card">
+                <h2 style="text-align: center; margin-bottom: 2rem; color: #ff6b35;">
+                    <i class="fas fa-chart-area"></i> Performance Radar
+                </h2>
+                <div style="max-width: 600px; margin: 0 auto;">
+                    <canvas id="radarChart" width="400" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-input::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: #ff6b35;
+        box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+    }
+    
+    .suggestions-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(26, 26, 46, 0.95);
+        border-radius: 15px;
+        margin-top: 0.5rem;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        display: none;
+    }
+    
+    .suggestion-item {
+        padding: 1rem;
+        cursor: pointer;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        transition: background-color 0.3s ease;
+    }
+    
+    .suggestion-item:hover {
+        background: rgba(255, 107, 53, 0.2);
+    }
+    
+    .suggestion-item:last-child {
+        border-bottom: none;
+    }
+    
+    .stat-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 3fr 1fr;
+        gap: 1rem;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .stat-row:last-child {
+        border-bottom: none;
+    }
+    
+    .stat-label {
+        font-weight: bold;
+        color: #ff6b35;
+    }
+    
+    .stat-value {
+        text-align: center;
+        font-weight: bold;
+    }
+    
+    .stat-bar-container {
+        position: relative;
+        height: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 5px;
+        overflow: hidden;
+    }
+    
+    .stat-bar {
+        height: 100%;
+        border-radius: 5px;
+        transition: width 0.8s ease-in-out;
+    }
+    
+    .stat-bar.player1 {
+        background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+    
+    .stat-bar.player2 {
+        background: linear-gradient(90deg, #ff6b35, #f7931e);
+    }
+    
+    @media (max-width: 768px) {
+        .player-selection {
+            grid-template-columns: 1fr !important;
+            gap: 1rem !important;
+        }
+        
+        .vs-divider {
+            font-size: 2rem !important;
+            margin: 1rem 0 !important;
+        }
+        
+        .stat-row {
+            grid-template-columns: 1fr;
+            text-align: center;
+            gap: 0.5rem;
+        }
+        
+        .player-info-detailed {
+            margin-bottom: 1rem;
+        }
+        
+        #comparisonResults .card > div {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let selectedPlayer1 = null;
+let selectedPlayer2 = null;
+let radarChart = null;
+
+// Sample player data for demo
+const samplePlayers = [
+    {id: 2544, full_name: 'LeBron James', first_name: 'LeBron', last_name: 'James', is_active: true},
+    {id: 201939, full_name: 'Stephen Curry', first_name: 'Stephen', last_name: 'Curry', is_active: true},
+    {id: 201142, full_name: 'Kevin Durant', first_name: 'Kevin', last_name: 'Durant', is_active: true},
+    {id: 201566, full_name: 'Russell Westbrook', first_name: 'Russell', last_name: 'Westbrook', is_active: true},
+    {id: 203076, full_name: 'Anthony Davis', first_name: 'Anthony', last_name: 'Davis', is_active: true}
+];
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializePlayerSearch();
+    
+    // Demo button functionality
+    document.getElementById('demoBtn').addEventListener('click', function() {
+        loadDemoComparison();
+    });
+    
+    // Compare button functionality
+    document.getElementById('compareBtn').addEventListener('click', function() {
+        if (selectedPlayer1 && selectedPlayer2) {
+            compareSelectedPlayers();
+        }
+    });
+});
+
+function initializePlayerSearch() {
+    setupPlayerSearch('player1Search', 'player1Suggestions', 'player1Card', 1);
+    setupPlayerSearch('player2Search', 'player2Suggestions', 'player2Card', 2);
+}
+
+function setupPlayerSearch(searchId, suggestionsId, cardId, playerNum) {
+    const searchInput = document.getElementById(searchId);
+    const suggestionsDiv = document.getElementById(suggestionsId);
+    
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        if (query.length >= 2) {
+            showPlayerSuggestions(query, suggestionsDiv, cardId, playerNum);
+        } else {
+            suggestionsDiv.style.display = 'none';
+        }
+    });
+    
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.search-container')) {
+            suggestionsDiv.style.display = 'none';
+        }
+    });
+}
+
+function showPlayerSuggestions(query, suggestionsDiv, cardId, playerNum) {
+    // Use sample data for demo
+    const matches = samplePlayers.filter(player => 
+        player.full_name.toLowerCase().includes(query.toLowerCase())
+    );
+    
+    if (matches.length > 0) {
+        suggestionsDiv.innerHTML = matches.map(player => `
+            <div class="suggestion-item" onclick="selectPlayer(${player.id}, '${player.full_name}', '${cardId}', ${playerNum})">
+                <strong>${player.full_name}</strong>
+            </div>
+        `).join('');
+        suggestionsDiv.style.display = 'block';
+    } else {
+        suggestionsDiv.style.display = 'none';
+    }
+}
+
+function selectPlayer(playerId, playerName, cardId, playerNum) {
+    const playerCard = document.getElementById(cardId);
+    const playerNameEl = playerCard.querySelector('.player-name');
+    const playerTeamEl = playerCard.querySelector('.player-team');
+    const playerPositionEl = playerCard.querySelector('.player-position');
+    
+    // Sample player info
+    const sampleInfo = {
+        2544: {team: 'LAL • Los Angeles Lakers', position: 'Forward'},
+        201939: {team: 'GSW • Golden State Warriors', position: 'Guard'},
+        201142: {team: 'PHX • Phoenix Suns', position: 'Forward'},
+        201566: {team: 'LAC • LA Clippers', position: 'Guard'},
+        203076: {team: 'LAL • Los Angeles Lakers', position: 'Forward/Center'}
+    };
+    
+    playerNameEl.textContent = playerName;
+    playerTeamEl.textContent = sampleInfo[playerId]?.team || 'NBA Team';
+    playerPositionEl.textContent = sampleInfo[playerId]?.position || 'Player';
+    
+    playerCard.style.display = 'block';
+    
+    // Store selected player
+    if (playerNum === 1) {
+        selectedPlayer1 = {id: playerId, name: playerName};
+    } else {
+        selectedPlayer2 = {id: playerId, name: playerName};
+    }
+    
+    // Hide suggestions
+    document.getElementById(`player${playerNum}Suggestions`).style.display = 'none';
+    
+    // Enable compare button if both players selected
+    updateCompareButton();
+}
+
+function updateCompareButton() {
+    const compareBtn = document.getElementById('compareBtn');
+    if (selectedPlayer1 && selectedPlayer2) {
+        compareBtn.disabled = false;
+        compareBtn.style.opacity = '1';
+    } else {
+        compareBtn.disabled = true;
+        compareBtn.style.opacity = '0.6';
+    }
+}
+
+function loadDemoComparison() {
+    showLoading(document.getElementById('loadingState'));
+    
+    // Simulate loading delay
+    setTimeout(async () => {
+        try {
+            const response = await fetch('/api/sample_comparison');
+            const data = await response.json();
+            displayComparison(data);
+        } catch (error) {
+            console.error('Error loading demo:', error);
+            showError('Failed to load demo data. Please try again.', document.getElementById('comparisonResults'));
+        } finally {
+            hideLoading(document.getElementById('loadingState'));
+        }
+    }, 1000);
+}
+
+function compareSelectedPlayers() {
+    if (!selectedPlayer1 || !selectedPlayer2) return;
+    
+    showLoading(document.getElementById('loadingState'));
+    
+    // For demo, use sample comparison
+    setTimeout(async () => {
+        try {
+            const response = await fetch('/api/sample_comparison');
+            const data = await response.json();
+            
+            // Update names to match selected players
+            data.player1.info.DISPLAY_FIRST_LAST = selectedPlayer1.name;
+            data.player2.info.DISPLAY_FIRST_LAST = selectedPlayer2.name;
+            
+            displayComparison(data);
+        } catch (error) {
+            console.error('Error comparing players:', error);
+            showError('Failed to compare players. Please try again.', document.getElementById('comparisonResults'));
+        } finally {
+            hideLoading(document.getElementById('loadingState'));
+        }
+    }, 1500);
+}
+
+function displayComparison(data) {
+    const resultsDiv = document.getElementById('comparisonResults');
+    
+    // Display player information
+    displayPlayerInfo(data);
+    
+    // Display statistical comparison
+    displayStatsComparison(data);
+    
+    // Create radar chart
+    createRadarChart(data);
+    
+    // Show results
+    resultsDiv.style.display = 'block';
+    resultsDiv.scrollIntoView({behavior: 'smooth'});
+}
+
+function displayPlayerInfo(data) {
+    const player1Info = document.getElementById('player1Info');
+    const player2Info = document.getElementById('player2Info');
+    
+    const p1 = data.player1.info;
+    const p2 = data.player2.info;
+    
+    player1Info.innerHTML = `
+        <h3 style="margin-bottom: 1rem; color: #667eea;">${p1.DISPLAY_FIRST_LAST}</h3>
+        <div style="display: grid; gap: 0.5rem; text-align: left;">
+            <div><strong>Team:</strong> ${p1.TEAM_CITY} ${p1.TEAM_NAME}</div>
+            <div><strong>Position:</strong> ${p1.POSITION}</div>
+            <div><strong>Height:</strong> ${p1.HEIGHT}</div>
+            <div><strong>Weight:</strong> ${p1.WEIGHT} lbs</div>
+        </div>
+    `;
+    
+    player2Info.innerHTML = `
+        <h3 style="margin-bottom: 1rem; color: #ff6b35;">${p2.DISPLAY_FIRST_LAST}</h3>
+        <div style="display: grid; gap: 0.5rem; text-align: left;">
+            <div><strong>Team:</strong> ${p2.TEAM_CITY} ${p2.TEAM_NAME}</div>
+            <div><strong>Position:</strong> ${p2.POSITION}</div>
+            <div><strong>Height:</strong> ${p2.HEIGHT}</div>
+            <div><strong>Weight:</strong> ${p2.WEIGHT} lbs</div>
+        </div>
+    `;
+}
+
+function displayStatsComparison(data) {
+    const statsDiv = document.getElementById('statsComparison');
+    const p1Stats = data.player1.stats;
+    const p2Stats = data.player2.stats;
+    
+    const statCategories = [
+        {key: 'PTS', label: 'Points Per Game', format: 'decimal'},
+        {key: 'AST', label: 'Assists Per Game', format: 'decimal'},
+        {key: 'REB', label: 'Rebounds Per Game', format: 'decimal'},
+        {key: 'FG_PCT', label: 'Field Goal %', format: 'percentage'},
+        {key: 'FG3_PCT', label: '3-Point %', format: 'percentage'},
+        {key: 'FT_PCT', label: 'Free Throw %', format: 'percentage'},
+        {key: 'STL', label: 'Steals Per Game', format: 'decimal'},
+        {key: 'BLK', label: 'Blocks Per Game', format: 'decimal'},
+        {key: 'TOV', label: 'Turnovers Per Game', format: 'decimal'},
+        {key: 'MIN', label: 'Minutes Per Game', format: 'decimal'}
+    ];
+    
+    statsDiv.innerHTML = statCategories.map(stat => {
+        const p1Value = p1Stats[stat.key] || 0;
+        const p2Value = p2Stats[stat.key] || 0;
+        
+        const p1Display = formatStatValue(p1Value, stat.format);
+        const p2Display = formatStatValue(p2Value, stat.format);
+        
+        // Determine which value is higher for bar visualization
+        const maxValue = Math.max(p1Value, p2Value);
+        const p1Width = maxValue > 0 ? (p1Value / maxValue) * 100 : 0;
+        const p2Width = maxValue > 0 ? (p2Value / maxValue) * 100 : 0;
+        
+        return `
+            <div class="stat-row">
+                <div class="stat-label">${stat.label}</div>
+                <div class="stat-value" style="color: #667eea;">${p1Display}</div>
+                <div class="stat-bar-container">
+                    <div class="stat-bar player1" style="width: ${p1Width}%"></div>
+                </div>
+                <div class="stat-value" style="color: #ff6b35;">${p2Display}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function formatStatValue(value, format) {
+    if (format === 'percentage') {
+        return (value * 100).toFixed(1) + '%';
+    } else if (format === 'decimal') {
+        return value.toFixed(1);
+    }
+    return value.toString();
+}
+
+function createRadarChart(data) {
+    const ctx = document.getElementById('radarChart').getContext('2d');
+    
+    // Destroy existing chart if it exists
+    if (radarChart) {
+        radarChart.destroy();
+    }
+    
+    const p1Stats = data.player1.stats;
+    const p2Stats = data.player2.stats;
+    
+    // Normalize stats for radar chart (0-100 scale)
+    const normalizeStats = (stats) => [
+        Math.min((stats.PTS / 35) * 100, 100), // Points (max 35)
+        Math.min((stats.AST / 12) * 100, 100), // Assists (max 12)
+        Math.min((stats.REB / 15) * 100, 100), // Rebounds (max 15)
+        Math.min(stats.FG_PCT * 100, 100),     // FG%
+        Math.min(stats.FG3_PCT * 100, 100),    // 3P%
+        Math.min((stats.STL / 3) * 100, 100),  // Steals (max 3)
+        Math.min((stats.BLK / 3) * 100, 100)   // Blocks (max 3)
+    ];
+    
+    radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Points', 'Assists', 'Rebounds', 'FG%', '3P%', 'Steals', 'Blocks'],
+            datasets: [{
+                label: data.player1.info.DISPLAY_FIRST_LAST,
+                data: normalizeStats(p1Stats),
+                backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                borderColor: '#667eea',
+                borderWidth: 2,
+                pointBackgroundColor: '#667eea'
+            }, {
+                label: data.player2.info.DISPLAY_FIRST_LAST,
+                data: normalizeStats(p2Stats),
+                backgroundColor: 'rgba(255, 107, 53, 0.2)',
+                borderColor: '#ff6b35',
+                borderWidth: 2,
+                pointBackgroundColor: '#ff6b35'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#fff'
+                    }
+                }
+            },
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    angleLines: {
+                        color: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    pointLabels: {
+                        color: '#fff',
+                        font: {
+                            size: 12
+                        }
+                    },
+                    ticks: {
+                        color: 'rgba(255, 255, 255, 0.6)',
+                        backdropColor: 'transparent'
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

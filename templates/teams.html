@@ -1,0 +1,630 @@
+{% extends "base.html" %}
+
+{% block title %}Team Analytics - NBA Data Visualizer{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-users"></i> Team Analytics
+        </h1>
+        <p class="page-subtitle">Compare regular season vs playoffs performance</p>
+    </div>
+    
+    <!-- Team Selection -->
+    <div class="card team-selection-card">
+        <h3 style="text-align: center; margin-bottom: 2rem; color: #ff6b35;">
+            <i class="fas fa-basketball-ball"></i> Select NBA Team
+        </h3>
+        <div class="team-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+            <button class="team-button" data-team="lakers" data-name="Los Angeles Lakers">
+                <div class="team-logo" style="font-size: 2rem; margin-bottom: 0.5rem;">💜💛</div>
+                <div>Lakers</div>
+            </button>
+            <button class="team-button" data-team="warriors" data-name="Golden State Warriors">
+                <div class="team-logo" style="font-size: 2rem; margin-bottom: 0.5rem;">🔵🟡</div>
+                <div>Warriors</div>
+            </button>
+            <button class="team-button" data-team="celtics" data-name="Boston Celtics">
+                <div class="team-logo" style="font-size: 2rem; margin-bottom: 0.5rem;">🍀</div>
+                <div>Celtics</div>
+            </button>
+            <button class="team-button" data-team="heat" data-name="Miami Heat">
+                <div class="team-logo" style="font-size: 2rem; margin-bottom: 0.5rem;">🔥</div>
+                <div>Heat</div>
+            </button>
+            <button class="team-button" data-team="nuggets" data-name="Denver Nuggets">
+                <div class="team-logo" style="font-size: 2rem; margin-bottom: 0.5rem;">⛰️</div>
+                <div>Nuggets</div>
+            </button>
+            <button class="team-button" data-team="suns" data-name="Phoenix Suns">
+                <div class="team-logo" style="font-size: 2rem; margin-bottom: 0.5rem;">☀️</div>
+                <div>Suns</div>
+            </button>
+            <button class="team-button" data-team="bucks" data-name="Milwaukee Bucks">
+                <div class="team-logo" style="font-size: 2rem; margin-bottom: 0.5rem;">🦌</div>
+                <div>Bucks</div>
+            </button>
+            <button class="team-button" data-team="nets" data-name="Brooklyn Nets">
+                <div class="team-logo" style="font-size: 2rem; margin-bottom: 0.5rem;">🖤🤍</div>
+                <div>Nets</div>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Loading State -->
+    <div id="teamLoading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading team analytics...</p>
+    </div>
+    
+    <!-- Team Analytics Results -->
+    <div id="teamAnalytics" style="display: none;">
+        <!-- Team Header -->
+        <div class="card team-header">
+            <div style="text-align: center;">
+                <h2 id="selectedTeamName" style="color: #ff6b35; margin-bottom: 1rem;"></h2>
+                <p style="color: #b8b8b8;">2023-24 Season Analysis</p>
+            </div>
+        </div>
+        
+        <!-- Quick Stats Overview -->
+        <div class="card">
+            <h3 style="text-align: center; margin-bottom: 2rem; color: #ff6b35;">
+                <i class="fas fa-chart-pie"></i> Season Overview
+            </h3>
+            <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+                <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; border-radius: 15px; text-align: center; color: white;">
+                    <div class="stat-number" style="font-size: 2.5rem; font-weight: bold; margin-bottom: 0.5rem;" id="regularSeasonWins">--</div>
+                    <div class="stat-label" style="opacity: 0.9;">Regular Season Wins</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); padding: 2rem; border-radius: 15px; text-align: center; color: white;">
+                    <div class="stat-number" style="font-size: 2.5rem; font-weight: bold; margin-bottom: 0.5rem;" id="playoffWins">--</div>
+                    <div class="stat-label" style="opacity: 0.9;">Playoff Wins</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); padding: 2rem; border-radius: 15px; text-align: center; color: white;">
+                    <div class="stat-number" style="font-size: 2.5rem; font-weight: bold; margin-bottom: 0.5rem;" id="avgPointsRS">--</div>
+                    <div class="stat-label" style="opacity: 0.9;">Avg Points (RS)</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); padding: 2rem; border-radius: 15px; text-align: center; color: white;">
+                    <div class="stat-number" style="font-size: 2.5rem; font-weight: bold; margin-bottom: 0.5rem;" id="avgPointsPO">--</div>
+                    <div class="stat-label" style="opacity: 0.9;">Avg Points (PO)</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Regular Season vs Playoffs Comparison -->
+        <div class="card">
+            <h3 style="text-align: center; margin-bottom: 2rem; color: #ff6b35;">
+                <i class="fas fa-balance-scale"></i> Regular Season vs Playoffs
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
+                <div class="chart-container" style="background: rgba(255, 255, 255, 0.05); padding: 1.5rem; border-radius: 15px;">
+                    <canvas id="comparisonChart" style="max-height: 350px;"></canvas>
+                </div>
+                <div class="performance-metrics" style="background: rgba(255, 255, 255, 0.05); padding: 1.5rem; border-radius: 15px;">
+                    <h4 style="margin-bottom: 1.5rem; color: #ff6b35;">Performance Metrics</h4>
+                    <div class="metric-row" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                        <span>Offensive Rating</span>
+                        <div>
+                            <span style="color: #667eea;" id="offRatingRS">115.2</span> / 
+                            <span style="color: #ff6b35;" id="offRatingPO">112.8</span>
+                        </div>
+                    </div>
+                    <div class="metric-row" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                        <span>Defensive Rating</span>
+                        <div>
+                            <span style="color: #667eea;" id="defRatingRS">108.7</span> / 
+                            <span style="color: #ff6b35;" id="defRatingPO">105.3</span>
+                        </div>
+                    </div>
+                    <div class="metric-row" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                        <span>Pace</span>
+                        <div>
+                            <span style="color: #667eea;" id="paceRS">102.1</span> / 
+                            <span style="color: #ff6b35;" id="pacePO">98.4</span>
+                        </div>
+                    </div>
+                    <div class="metric-row" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0;">
+                        <span>Net Rating</span>
+                        <div>
+                            <span style="color: #667eea;" id="netRatingRS">+6.5</span> / 
+                            <span style="color: #ff6b35;" id="netRatingPO">+7.5</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detailed Analytics -->
+        <div class="card">
+            <h3 style="text-align: center; margin-bottom: 2rem; color: #ff6b35;">
+                <i class="fas fa-microscope"></i> Detailed Analytics
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                <div class="chart-container" style="background: rgba(255, 255, 255, 0.05); padding: 1.5rem; border-radius: 15px;">
+                    <canvas id="offensiveBreakdown" style="max-height: 300px;"></canvas>
+                </div>
+                <div class="chart-container" style="background: rgba(255, 255, 255, 0.05); padding: 1.5rem; border-radius: 15px;">
+                    <canvas id="defensiveBreakdown" style="max-height: 300px;"></canvas>
+                </div>
+                <div class="chart-container" style="background: rgba(255, 255, 255, 0.05); padding: 1.5rem; border-radius: 15px;">
+                    <canvas id="seasonTimeline" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Player Contributions -->
+        <div class="card">
+            <h3 style="text-align: center; margin-bottom: 2rem; color: #ff6b35;">
+                <i class="fas fa-star"></i> Top Player Contributions
+            </h3>
+            <div id="playerContributions" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                <!-- Player contribution cards will be populated here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Demo Button -->
+    <div class="card" style="text-align: center;">
+        <h3 style="margin-bottom: 1.5rem; color: #ff6b35;">
+            <i class="fas fa-play-circle"></i> Quick Demo
+        </h3>
+        <p style="margin-bottom: 2rem; color: #b8b8b8;">
+            Try our team analytics with sample data from the Lakers
+        </p>
+        <button id="demoTeamBtn" class="btn">
+            <i class="fas fa-chart-bar"></i> Load Demo Analytics
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .team-button {
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        padding: 1.5rem;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        font-size: 1.1rem;
+        font-weight: bold;
+    }
+    
+    .team-button:hover {
+        background: rgba(255, 107, 53, 0.2);
+        border-color: #ff6b35;
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
+    }
+    
+    .team-button.active {
+        background: linear-gradient(135deg, #ff6b35, #f7931e);
+        border-color: #ff6b35;
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(255, 107, 53, 0.4);
+    }
+    
+    .stat-card {
+        transition: transform 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-10px);
+    }
+    
+    .chart-container {
+        position: relative;
+    }
+    
+    .metric-row {
+        transition: background-color 0.3s ease;
+    }
+    
+    .metric-row:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+    }
+    
+    .player-contribution-card {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(255, 107, 53, 0.2));
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+    
+    .player-contribution-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    @media (max-width: 768px) {
+        .team-grid {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+        }
+        
+        .metric-row {
+            flex-direction: column;
+            text-align: center;
+            gap: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let selectedTeam = null;
+let comparisonChart = null;
+let offensiveChart = null;
+let defensiveChart = null;
+let timelineChart = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeTeamSelection();
+    
+    document.getElementById('demoTeamBtn').addEventListener('click', loadDemoTeam);
+});
+
+function initializeTeamSelection() {
+    const teamButtons = document.querySelectorAll('.team-button');
+    
+    teamButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            teamButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            selectedTeam = {
+                id: this.dataset.team,
+                name: this.dataset.name
+            };
+            
+            loadTeamAnalytics(selectedTeam);
+        });
+    });
+}
+
+function loadTeamAnalytics(team) {
+    showLoading(document.getElementById('teamLoading'));
+    
+    // Simulate loading delay
+    setTimeout(() => {
+        displayTeamAnalytics(team);
+        hideLoading(document.getElementById('teamLoading'));
+    }, 1500);
+}
+
+function loadDemoTeam() {
+    // Select Lakers for demo
+    const lakersButton = document.querySelector('[data-team="lakers"]');
+    if (lakersButton) {
+        lakersButton.click();
+    }
+}
+
+function displayTeamAnalytics(team) {
+    document.getElementById('selectedTeamName').textContent = team.name;
+    
+    // Generate sample data based on team
+    const sampleData = generateSampleTeamData(team.id);
+    
+    // Update overview stats
+    updateOverviewStats(sampleData);
+    
+    // Create charts
+    createComparisonChart(sampleData);
+    createOffensiveBreakdown(sampleData);
+    createDefensiveBreakdown(sampleData);
+    createSeasonTimeline(sampleData);
+    createPlayerContributions(sampleData);
+    
+    // Show analytics section
+    document.getElementById('teamAnalytics').style.display = 'block';
+    document.getElementById('teamAnalytics').scrollIntoView({behavior: 'smooth'});
+}
+
+function generateSampleTeamData(teamId) {
+    // Sample data variations by team
+    const baseData = {
+        lakers: {
+            rsWins: 47, poWins: 8,
+            rsPoints: 115.2, poPoints: 112.8,
+            offRatingRS: 115.2, offRatingPO: 112.8,
+            defRatingRS: 108.7, defRatingPO: 105.3,
+            players: ['LeBron James', 'Anthony Davis', 'Russell Westbrook']
+        },
+        warriors: {
+            rsWins: 44, poWins: 12,
+            rsPoints: 117.9, poPoints: 114.2,
+            offRatingRS: 117.9, offRatingPO: 114.2,
+            defRatingRS: 107.3, defRatingPO: 104.8,
+            players: ['Stephen Curry', 'Klay Thompson', 'Draymond Green']
+        },
+        celtics: {
+            rsWins: 57, poWins: 16,
+            rsPoints: 120.2, poPoints: 118.7,
+            offRatingRS: 120.2, offRatingPO: 118.7,
+            defRatingRS: 104.5, defRatingPO: 102.1,
+            players: ['Jayson Tatum', 'Jaylen Brown', 'Marcus Smart']
+        }
+    };
+    
+    return baseData[teamId] || baseData.lakers;
+}
+
+function updateOverviewStats(data) {
+    document.getElementById('regularSeasonWins').textContent = data.rsWins;
+    document.getElementById('playoffWins').textContent = data.poWins;
+    document.getElementById('avgPointsRS').textContent = data.rsPoints.toFixed(1);
+    document.getElementById('avgPointsPO').textContent = data.poPoints.toFixed(1);
+    
+    document.getElementById('offRatingRS').textContent = data.offRatingRS.toFixed(1);
+    document.getElementById('offRatingPO').textContent = data.offRatingPO.toFixed(1);
+    document.getElementById('defRatingRS').textContent = data.defRatingRS.toFixed(1);
+    document.getElementById('defRatingPO').textContent = data.defRatingPO.toFixed(1);
+    
+    document.getElementById('paceRS').textContent = '102.1';
+    document.getElementById('pacePO').textContent = '98.4';
+    document.getElementById('netRatingRS').textContent = '+6.5';
+    document.getElementById('netRatingPO').textContent = '+7.5';
+}
+
+function createComparisonChart(data) {
+    const ctx = document.getElementById('comparisonChart').getContext('2d');
+    
+    if (comparisonChart) {
+        comparisonChart.destroy();
+    }
+    
+    comparisonChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Points Per Game', 'Field Goal %', 'Rebounds', 'Assists', 'Turnovers'],
+            datasets: [{
+                label: 'Regular Season',
+                data: [data.rsPoints, 46.8, 45.2, 24.1, 13.8],
+                backgroundColor: '#667eea',
+                borderRadius: 5
+            }, {
+                label: 'Playoffs',
+                data: [data.poPoints, 45.1, 44.8, 26.3, 12.4],
+                backgroundColor: '#ff6b35',
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#fff'
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Regular Season vs Playoffs Comparison',
+                    color: '#fff'
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    ticks: {
+                        color: '#fff'
+                    }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    ticks: {
+                        color: '#fff'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createOffensiveBreakdown(data) {
+    const ctx = document.getElementById('offensiveBreakdown').getContext('2d');
+    
+    if (offensiveChart) {
+        offensiveChart.destroy();
+    }
+    
+    offensiveChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Paint Points', '3-Pointers', 'Mid-Range', 'Free Throws'],
+            datasets: [{
+                data: [40, 35, 15, 10],
+                backgroundColor: [
+                    '#ff6b35',
+                    '#667eea',
+                    '#84fab0',
+                    '#ffd700'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#fff'
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Offensive Shot Distribution',
+                    color: '#fff'
+                }
+            }
+        }
+    });
+}
+
+function createDefensiveBreakdown(data) {
+    const ctx = document.getElementById('defensiveBreakdown').getContext('2d');
+    
+    if (defensiveChart) {
+        defensiveChart.destroy();
+    }
+    
+    defensiveChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Steals', 'Blocks', 'Def Rebounds', 'Opp FG%', 'Forced TO'],
+            datasets: [{
+                label: 'Team Defense',
+                data: [7.8, 4.2, 35.6, 45.2, 14.1],
+                backgroundColor: 'rgba(255, 107, 53, 0.2)',
+                borderColor: '#ff6b35',
+                borderWidth: 2,
+                pointBackgroundColor: '#ff6b35'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#fff'
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Defensive Performance',
+                    color: '#fff'
+                }
+            },
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    angleLines: {
+                        color: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    pointLabels: {
+                        color: '#fff'
+                    },
+                    ticks: {
+                        color: 'rgba(255, 255, 255, 0.6)',
+                        backdropColor: 'transparent'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createSeasonTimeline(data) {
+    const ctx = document.getElementById('seasonTimeline').getContext('2d');
+    
+    if (timelineChart) {
+        timelineChart.destroy();
+    }
+    
+    // Generate sample timeline data
+    const months = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr'];
+    const winsData = [6, 8, 9, 7, 8, 9, 0]; // Sample wins per month
+    
+    timelineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [{
+                label: 'Wins Per Month',
+                data: winsData,
+                borderColor: '#ff6b35',
+                backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#fff'
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Season Performance Timeline',
+                    color: '#fff'
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    ticks: {
+                        color: '#fff'
+                    }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    ticks: {
+                        color: '#fff'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createPlayerContributions(data) {
+    const container = document.getElementById('playerContributions');
+    
+    const playersData = [
+        { name: data.players[0], ppg: 28.9, rpg: 8.3, apg: 6.8, impact: 95 },
+        { name: data.players[1], ppg: 23.2, rpg: 9.9, apg: 3.1, impact: 87 },
+        { name: data.players[2], ppg: 15.9, rpg: 6.2, apg: 7.4, impact: 78 }
+    ];
+    
+    container.innerHTML = playersData.map((player, index) => `
+        <div class="player-contribution-card">
+            <h4 style="color: #ff6b35; margin-bottom: 1rem;">${player.name}</h4>
+            <div style="display: grid; gap: 0.5rem; font-size: 0.9rem;">
+                <div><strong>PPG:</strong> ${player.ppg}</div>
+                <div><strong>RPG:</strong> ${player.rpg}</div>
+                <div><strong>APG:</strong> ${player.apg}</div>
+                <div style="margin-top: 1rem;">
+                    <div style="background: rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 0.5rem;">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #ff6b35;">${player.impact}</div>
+                        <div style="font-size: 0.8rem; opacity: 0.8;">Impact Score</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+</script>
+{% endblock %}
+        
